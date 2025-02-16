@@ -1,4 +1,5 @@
 import MetaTrader5 as mt5
+import pandas as pd
 
 # Initialize and Login
 account = 90145790
@@ -91,7 +92,7 @@ def sell():
     }
     return sell_request
 
-request = buy()
+request = buy()   #change this to buy() or sell()
 
 # Send order
 result = mt5.order_send(request)
@@ -104,5 +105,23 @@ elif result.retcode != mt5.TRADE_RETCODE_DONE:
     print(f"Order failed, error code: {result.retcode}")
 else:
     print(f"✅ Order placed successfully! Order ID: {result.order}")
+
+
+#data
+timeframe = mt5.TIMEFRAME_M1
+currency_pairs = ["EURUSD", "EURCAD", "GBPUSD", "GBPJPY", "USDJPY", "USDCAD", "AUDCAD", "AUDJPY", "AUDUSD"]
+
+# Fetch data
+candles = {}
+for pair in currency_pairs:
+    data = mt5.copy_rates_from_pos(pair, timeframe, 0, 100) #curreny pair symbol, 1 minute timeframe, current candle to 100 candles previous
+    if data is not None:
+        candles[pair] = pd.DataFrame(data)
+        candles[pair]["time"] = pd.to_datetime(candles[pair]["time"], unit="s")  # Convert time to readable format
+#print(candles["EURUSD"].head())
+#can print the most recent couple candles data
+#print(candles["EURUSD"]["tick_volume"].iloc[0])  # Last (most recent) candle's volume for EURUSD
+#can use "high" "open" "close" "low" "time" "tick_volume"
+
 
 mt5.shutdown()
