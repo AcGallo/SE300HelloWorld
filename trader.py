@@ -122,6 +122,6 @@ for pair in currency_pairs:
 #can print the most recent couple candles data
 #print(candles["EURUSD"]["tick_volume"].iloc[0])  # Last (most recent) candle's volume for EURUSD
 #can use "high" "open" "close" "low" "time" "tick_volume"
-
+#test
 
 mt5.shutdown()
