@@ -118,7 +118,7 @@ for pair in currency_pairs:
     if data is not None:
         candles[pair] = pd.DataFrame(data)
         candles[pair]["time"] = pd.to_datetime(candles[pair]["time"], unit="s")  # Convert time to readable format
-#print(candles["EURUSD"].head())
+print(candles["EURUSD"].head())
 #can print the most recent couple candles data
 #print(candles["EURUSD"]["tick_volume"].iloc[0])  # Last (most recent) candle's volume for EURUSD
 #can use "high" "open" "close" "low" "time" "tick_volume"
