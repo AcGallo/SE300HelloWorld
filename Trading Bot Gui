@@ -9,24 +9,28 @@ def submit():
 # Create main application window
 root = tk.Tk()
 root.title("Trading Bot")
-root.geometry("300x200")
+root.geometry("600x300")
 
 # Welcome Label
 welcome_label = ttk.Label(root, text="Welcome to Trading Bot", font=("Arial", 12, "bold"))
 welcome_label.pack(pady=10)
+
+# Information label
+information_label = ttk.Label(root, text="This trading bot trades EURUSD stock only using Meta Trader 5 API")
+information_label.pack()
 
 # Instruction Label
 instruction_label = ttk.Label(root, text="Please enter the information below")
 instruction_label.pack()
 
 # Order Input
-order_label = ttk.Label(root, text="Orders: $")
+order_label = ttk.Label(root, text="Maximum Order Size: $")
 order_label.pack()
 order_entry = ttk.Entry(root)
 order_entry.pack()
 
 # Risk Input
-risk_label = ttk.Label(root, text="Risk: %")
+risk_label = ttk.Label(root, text="Maximum Risk: %")
 risk_label.pack()
 risk_entry = ttk.Entry(root)
 risk_entry.pack()
