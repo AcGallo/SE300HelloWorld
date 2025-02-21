@@ -175,6 +175,7 @@ def standard_data():
 #get standardized data
 standardized_data = standard_data()
 
+
 #place a trade
 place_trade()
 
