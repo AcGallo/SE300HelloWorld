@@ -5,19 +5,40 @@ def submit():
     orders = order_entry.get()
     risk = risk_entry.get()
     print(f"Orders: ${orders}, Risk: {risk}%")
+    with open('settings.txt', 'w') as file:
+        file.write('{}\n'.format(orders))
+        file.write('{}\n'.format(risk))
+
+with open('settings.txt', 'r') as file:
+    orders = int(file.readline().strip())
+    risk = int(file.readline().strip())
+file.close()
+print("Order is {} and risk is {}".format(orders, risk))
 
 # Create main application window
 root = tk.Tk()
 root.title("Trading Bot")
 root.geometry("600x300")
+"""
+root.configure(bg="black")
+
+# Style configuration for white text and button styling
+style = ttk.Style()
+style.configure("TLabel", foreground="white", background="black", font=("Arial", 10))
+style.configure("TButton", foreground="white", background="gray", padding=5)
+style.configure("TEntry", foreground="white", background="black")
+"""
 
 # Welcome Label
-welcome_label = ttk.Label(root, text="Welcome to Trading Bot", font=("Arial", 12, "bold"))
+welcome_label = ttk.Label(root, text="Welcome to Trading Bot", font=("Cambria", 20, "bold"))
 welcome_label.pack(pady=10)
 
 # Information label
 information_label = ttk.Label(root, text="This trading bot trades EURUSD stock only using Meta Trader 5 API")
 information_label.pack()
+
+current_value_label = ttk.Label(root, text="Max Order Size is currently set to ${} and risk percent set to {}".format(orders,risk))
+current_value_label.pack()
 
 # Instruction Label
 instruction_label = ttk.Label(root, text="Please enter the information below")
