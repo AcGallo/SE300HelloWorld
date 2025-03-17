@@ -1,16 +1,24 @@
 import tkinter as tk
 from tkinter import ttk
 
+def validate_float(d):
+    if d == "" or d.replace(".", "", 1).isdigit():  
+        return True
+    return False
+
 def submit():
-    orders = order_entry.get()
-    risk = risk_entry.get()
+    global orders
+    global risk
+    if order_entry.get():
+        orders = order_entry.get()
+    if risk_entry.get():
+        risk = risk_entry.get()
     print(f"Orders: ${orders}, Risk: {risk}%")
     with open('settings.txt', 'w') as file:
         file.write('{}\n'.format(orders))
         file.write('{}\n'.format(risk))
         file.write('{}\n'.format(is_eurusd_on))
     file.close()
-    root.destroy()
 
 def flip_eurusd_switch():
     global is_eurusd_on
@@ -22,6 +30,8 @@ def flip_eurusd_switch():
         is_eurusd_on = True
 
 global is_eurusd_on
+global orders
+global risk
 is_eurusd_on = True
 
 with open('settings.txt', 'r') as file:
@@ -35,11 +45,13 @@ print("Order is {} and risk is {}".format(orders, risk))
 root = tk.Tk()
 root.title("Trading Bot")
 root.geometry("600x400")
-root.configure(bg="OrangeRed4")
+root.configure(bg="bisque") #OrangeRed4
 
 # image definitions
 on = tk.PhotoImage(file="images/on.png")
 off = tk.PhotoImage(file="images/off.png")
+
+vflt = root.register(validate_float)
 
 """
 # Style configuration for white text and button styling
@@ -67,13 +79,13 @@ instruction_label.pack()
 # Order Input
 order_label = ttk.Label(root, text="Maximum Order Size: $")
 order_label.pack()
-order_entry = ttk.Entry(root)
+order_entry = ttk.Entry(root, validate="key", validatecommand=(vflt, "%P"))
 order_entry.pack()
 
 # Risk Input
 risk_label = ttk.Label(root, text="Maximum Risk: %")
 risk_label.pack()
-risk_entry = ttk.Entry(root)
+risk_entry = ttk.Entry(root, validate="key", validatecommand=(vflt, "%P"))
 risk_entry.pack()
 
 #EURUSD Switch
@@ -86,8 +98,12 @@ else:
 switch_eurusd.pack()
 
 # Submit Button
-submit_button = ttk.Button(root, text="Submit", command=submit)
+submit_button = ttk.Button(root, text="SUBMIT", command=submit)
 submit_button.pack(pady=10)
+
+# Exit Button
+exit_button = ttk.Button(root, text="EXIT", command=root.destroy)
+exit_button.pack(pady=10)
 
 # Run the application
 root.mainloop()
