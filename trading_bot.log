@@ -1,0 +1,20 @@
+2025-03-21 14:36:51,253 - INFO - Step 0: Holding...
+2025-03-21 14:37:51,264 - ERROR - Step 0: Error in loop: could not broadcast input array from shape (59,5) into shape (60,5)
+2025-03-28 16:40:33,433 - INFO - Step 0: Action [1], Reward [-0.1], Episode 0, Trade Count 0
+2025-03-28 16:40:43,558 - INFO - Step 1: Action [2], Reward [-0.1], Episode 0, Trade Count 0
+2025-03-28 16:41:03,582 - INFO - Step 2: Action [0], Reward [0.001], Episode 0, Trade Count 0
+2025-03-28 16:41:13,601 - INFO - Step 3: Action [2], Reward [-0.1], Episode 0, Trade Count 0
+2025-03-28 16:41:23,617 - INFO - Step 4: Action [1], Reward [-0.1], Episode 0, Trade Count 0
+2025-03-28 16:41:33,636 - INFO - Step 5: Action [0], Reward [0.001], Episode 0, Trade Count 0
+2025-03-28 16:41:43,655 - INFO - Step 6: Action [2], Reward [-0.1], Episode 0, Trade Count 0
+2025-03-28 16:42:29,703 - INFO - Step 0: Action [2], Reward [-0.1], Episode 0, Trade Count 0
+2025-03-28 16:42:49,774 - INFO - Step 1: Action [1], Reward [-0.1], Episode 0, Trade Count 0
+2025-03-28 16:42:59,788 - INFO - Step 2: Action [1], Reward [-0.1], Episode 0, Trade Count 0
+2025-03-28 16:43:09,808 - INFO - Step 3: Action [0], Reward [0.001], Episode 0, Trade Count 0
+2025-03-28 16:43:29,825 - INFO - Step 4: Action [2], Reward [-0.1], Episode 0, Trade Count 0
+2025-03-28 16:43:39,841 - INFO - Step 5: Action [2], Reward [-0.1], Episode 0, Trade Count 0
+2025-03-28 16:43:49,860 - INFO - Step 6: Action [2], Reward [-0.1], Episode 0, Trade Count 0
+2025-03-28 16:43:59,870 - INFO - Step 7: Action [0], Reward [0.001], Episode 0, Trade Count 0
+2025-03-28 16:44:09,883 - INFO - Step 8: Action [0], Reward [0.001], Episode 0, Trade Count 0
+2025-03-28 16:44:19,892 - INFO - Step 9: Action [1], Reward [-0.1], Episode 0, Trade Count 0
+2025-03-28 16:44:39,911 - INFO - Step 10: Action [0], Reward [0.001], Episode 0, Trade Count 0

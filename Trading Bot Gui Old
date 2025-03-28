@@ -6,35 +6,38 @@ def validate_float(d):
         return True
     return False
 
-def clear_other_entries(active_entry):
-    if active_entry == order_entry:
-        risk_entry.delete(0, tk.END)
-    elif active_entry == risk_entry:
-        order_entry.delete(0, tk.END)
-
 def submit():
     global orders
     global risk
-    if not order_entry.get() and not risk_entry.get():
-        pass  # Do nothing
-    elif order_entry.get():
+    if order_entry.get():
         orders = order_entry.get()
-        risk = 0
-    elif risk_entry.get():
-        orders = 0
+    if risk_entry.get():
         risk = risk_entry.get()
     print(f"Orders: ${orders}, Risk: {risk}%")
     with open('settings.txt', 'w') as file:
         file.write('{}\n'.format(orders))
         file.write('{}\n'.format(risk))
+        file.write('{}\n'.format(is_eurusd_on))
     file.close()
 
+def flip_eurusd_switch():
+    global is_eurusd_on
+    if is_eurusd_on:
+        switch_eurusd.config(image=off)
+        is_eurusd_on = False
+    else:
+        switch_eurusd.config(image=on)
+        is_eurusd_on = True
+
+global is_eurusd_on
 global orders
 global risk
+is_eurusd_on = True
 
 with open('settings.txt', 'r') as file:
     orders = float(file.readline().strip())
     risk = float(file.readline().strip())
+    is_eurusd_on = file.readline().strip().lower() in ("true", "1", "yes", "on")
 file.close()
 print("Order is {} and risk is {}".format(orders, risk))
 
@@ -44,8 +47,11 @@ root.title("Trading Bot")
 root.geometry("600x400")
 root.configure(bg="bisque") #OrangeRed4
 
+# image definitions
+on = tk.PhotoImage(file="images/order.png")
+off = tk.PhotoImage(file="images/risk.png")
+
 vflt = root.register(validate_float)
-clr = root.register(clear_other_entries)
 
 """
 I was trying to make the font and color look good but could not make it work - Shiv
@@ -83,8 +89,14 @@ risk_label.pack()
 risk_entry = ttk.Entry(root, validate="key", validatecommand=(vflt, "%P"))
 risk_entry.pack()
 
-order_entry.bind("<Key>", lambda event: clear_other_entries(order_entry))
-risk_entry.bind("<Key>", lambda event: clear_other_entries(risk_entry))
+#EURUSD Switch
+status_eurusd = ttk.Label(root, text="Select to trade by order or risk")
+status_eurusd.pack()
+if is_eurusd_on:
+    switch_eurusd = ttk.Button(root, image=on, command = flip_eurusd_switch)
+else:
+    switch_eurusd = ttk.Button(root, image=off, command = flip_eurusd_switch)
+switch_eurusd.pack()
 
 # Submit Button
 submit_button = ttk.Button(root, text="SUBMIT", command=submit)
