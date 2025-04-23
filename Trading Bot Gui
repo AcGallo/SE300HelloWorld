@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
+import subprocess
 
 def validate_float(d):
     if d == "" or d.replace(".", "", 1).isdigit():  
@@ -23,11 +24,13 @@ def submit():
     elif risk_entry.get():
         orders = 0
         risk = risk_entry.get()
-    print(f"Orders: ${orders}, Risk: {risk}%")
+    print(f"Max number of orders: {orders}, Risk: {risk}%")
     with open('settings.txt', 'w') as file:
         file.write('{}\n'.format(orders))
         file.write('{}\n'.format(risk))
     file.close()
+
+    subprocess.Popen(["python", "mt5_trading.py"])
 
 global orders
 global risk
@@ -36,7 +39,7 @@ with open('settings.txt', 'r') as file:
     orders = float(file.readline().strip())
     risk = float(file.readline().strip())
 file.close()
-print("Order is {} and risk is {}".format(orders, risk))
+print("Max number of orders is set to {} and risk is set to {}%".format(orders, risk))
 
 # Create main application window
 root = tk.Tk()
@@ -64,7 +67,7 @@ welcome_label.pack(pady=10)
 information_label = ttk.Label(root, text="This trading bot trades EURUSD stock only using Meta Trader 5 API")
 information_label.pack()
 
-current_value_label = ttk.Label(root, text="Max Order Size is currently set to ${} and risk percent set to {}".format(orders,risk))
+current_value_label = ttk.Label(root, text="Max number of orders is set to {} and risk is set to {}%".format(orders,risk))
 current_value_label.pack()
 
 # Instruction Label
@@ -72,13 +75,13 @@ instruction_label = ttk.Label(root, text="Please enter the information below")
 instruction_label.pack()
 
 # Order Input
-order_label = ttk.Label(root, text="Maximum Order Size: $")
+order_label = ttk.Label(root, text="Maximum number of orders")
 order_label.pack()
 order_entry = ttk.Entry(root, validate="key", validatecommand=(vflt, "%P"))
 order_entry.pack()
 
 # Risk Input
-risk_label = ttk.Label(root, text="Maximum Risk: %")
+risk_label = ttk.Label(root, text="Maximum Risk: % (Write in percentage, maximum is 3%)")
 risk_label.pack()
 risk_entry = ttk.Entry(root, validate="key", validatecommand=(vflt, "%P"))
 risk_entry.pack()

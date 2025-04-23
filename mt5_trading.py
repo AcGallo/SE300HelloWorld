@@ -18,18 +18,18 @@ content = file.readlines()
 
 np.set_printoptions(threshold=np.inf, linewidth=200) 
 
-# Initialize Variables
-risk = 0.1  # In percentage
-entry_orders = 10  # Number of orders
+# Initialize Variables  
+risk1 = 0.0  # In percentage
+entry_orders1 = 0.0  # Number of orders
 
-if float(content[0].strip()) >0 :
-    risk = content[0]
-if float(content[1].strip()) >0 :
-    entry_orders = content[1]
+if(float(content[0]) > 0):
+    risk1 = (content[0])
+if(float(content[1]) > 0):
+    entry_orders1 = (content[1])
 
 # Initialize and Login
-account = 10005657095
-password = "@aAiQ3Uv"
+account = 91395010
+password = "T_X5YbZz"
 server = "MetaQuotes-Demo"
 
 while not mt5.initialize():
@@ -126,12 +126,15 @@ def sell(order):
         print(f"Error in sell(): {e}")
         return None
 
-def place_trade(action):
+def place_trade(action, risk1, entry_orders1):
     try:
         balance = account_info.balance
+        orders = 0.0
+        risk = float(risk1)
+        entry_orders = float(entry_orders1)
         if risk > 0.0:
             orders = (balance * (risk / 100)) / sl_pips          
-        if entry_orders > 0:
+        if entry_orders > 0.0:
             orders = entry_orders
 
         valid_volume = round(
@@ -258,12 +261,12 @@ class ForexEnv(gym.Env):
             self.trade_count = 0
             self.balance = account_info.balance if account_info else self.balance
             
-            # Return a copy to prevent modification of internal state
-            return self.data.copy()  # Shape is now guaranteed to be (60, 5)
+            # Return observation with shape (1, 60, 5)
+            return self.data.copy().reshape(1, 60, 5)
             
         except Exception as e:
             print(f"⚠️ Error in reset(): {e}")
-            return np.zeros((60, 5), dtype=np.float32)
+            return np.zeros((1, 60, 5), dtype=np.float32)
 
     def update_data(self, new_data):
         """Update the environment's data buffer"""
@@ -282,15 +285,15 @@ class ForexEnv(gym.Env):
             # Validate action
             if action not in [0, 1, 2]:
                 print(f"⚠️ Invalid action: {action}")
-                return self.data.copy(), reward, done, info
+                return self.data.copy().reshape(1, 60, 5), reward, done, info
 
             # Get current price data
-            current_candle = self.data[self.current_step % len(self.data)]  # Use modulo to avoid index errors
+            current_candle = self.data[self.current_step % len(self.data)]
             current_price = current_candle[3]  # Close price
 
             # Execute trade actions
-            if action == 1 and self.position == 0:  # Buy
-                order_id = place_trade("buy")
+            if action == 1: # Buy
+                order_id = place_trade("buy", risk1, entry_orders1)
                 if order_id:
                     self.position = 1
                     self.entry_price = current_price
@@ -301,8 +304,8 @@ class ForexEnv(gym.Env):
                 else:
                     reward = -0.1
 
-            elif action == 2 and self.position == 0:  # Sell
-                order_id = place_trade("sell")
+            elif action == 2: # Sell
+                order_id = place_trade("sell", risk1, entry_orders1)
                 if order_id:
                     self.position = -1
                     self.entry_price = current_price
@@ -315,27 +318,18 @@ class ForexEnv(gym.Env):
 
             else:  # Hold
                 reward = 0.001
+                time.sleep(60)
 
             # Move to next step
             self.current_step += 1
-            
-            # Check termination conditions
-            if (self.current_step >= len(self.data) or 
-                self.current_step >= self.max_steps or
-                (time.time() - self.last_trade_time > 3600)):
-                done = True
 
             # Get new observation (last 60 candles)
-            start_idx = max(0, self.current_step - 60)
-            obs = self.data[start_idx:self.current_step]
+            obs = self.data[-60:] if len(self.data) >= 60 else np.zeros((60, 5))
             
-            # Pad if needed to maintain (60, 5) shape
-            if len(obs) < 60:
-                padding = np.zeros((60 - len(obs), 5), dtype=np.float32)
-                obs = np.vstack([padding, obs])
-            
-            # Ensure exact shape (60, 5)
-            obs = obs.reshape(60, 5)
+            # Ensure the observation has shape (1, 60, 5)
+            if obs.shape != (60, 5):
+                obs = np.zeros((60, 5), dtype=np.float32)
+            obs = obs.reshape(1, 60, 5)
             
             # Update account balance
             self.balance = account_info.balance if account_info else self.balance
@@ -344,11 +338,25 @@ class ForexEnv(gym.Env):
 
         except Exception as e:
             print(f"⚠️ Error in step(): {e}")
-            return np.zeros((60, 5), dtype=np.float32), 0, True, {}
+            return np.zeros(1, 60, 5), 0, True, {}
 
 raw_env = ForexEnv()
 env = DummyVecEnv([lambda: raw_env])
-model = PPO("MlpPolicy", env, verbose=1, learning_rate=0.0003)
+model = PPO(
+    "MlpPolicy",
+    env,
+    verbose=1,
+    learning_rate=3e-5,
+    n_steps=256,
+    batch_size=64,
+    n_epochs=5,
+    gamma=0.9, 
+    gae_lambda=0.95,
+    clip_range=0.2,
+    ent_coef=0.01,
+    max_grad_norm=0.5,
+    tensorboard_log="./ppo_trading_logs/"
+)
 
 # Loading saved model
 model_path = "forex_trading_bot.zip"
@@ -435,19 +443,40 @@ def calculate_reward(order_id):
 
     # Calculate profit manually
     if trade_type == 0:  # Buy trade
-        profit = (exit_price - entry_price) * volume
+        profit = (exit_price - entry_price) * volume * 1000
         # Normalize reward based on profit and volume
-        reward = profit / volume if volume != 0 else 0
+        reward = profit if volume != 0 else 0
     elif trade_type == 1:  # Sell trade
-        profit = (entry_price - exit_price) * volume
+        profit = (entry_price - exit_price) * volume * 1000
         # Normalize reward based on profit and volume
-        reward = profit / volume if volume != 0 else 0
+        reward = profit  if volume != 0 else 0
     else:
         print(f"⚠️ Invalid trade type for order {order_id}.")
         return 0  # Neutral reward if trade type is invalid
 
     print(f"✅ Trade {order_id} closed. Reward: {reward}")
     return reward  # Return the calculated reward
+
+def get_observation(env):
+    """
+    Safely gets the current observation with shape (1, 60, 5)
+    Handles edge cases and maintains shape
+    """
+    # Get the most recent 60 candles
+    current_data = getData()
+    
+    # If we don't have enough data, pad with zeros
+    if len(current_data) < 60:
+        padding = np.zeros((60 - len(current_data), 5), dtype=np.float32)
+        obs = np.vstack([padding, current_data])
+    else:
+        obs = current_data[-60:]  # Take last 60 candles
+    
+    # Ensure correct shape (1, 60, 5)
+    if obs.shape != (60, 5):
+        obs = np.zeros((60, 5), dtype=np.float32)
+    
+    return obs.reshape(1, 60, 5)
 
 open_trades = {}  # Format: {order_id: {"action": action, "step": step}}
 
@@ -458,7 +487,7 @@ previous_data = getData()
 
 # Training parameters
 train_interval = 100  # Train every 100 steps
-train_batch_size = 10  # Train for 10 timesteps each time
+train_batch_size = 1000  # Train for 100 timesteps each time
 save_interval = 100  # Save the model every 1,000 steps
 
 while True:
@@ -475,23 +504,37 @@ while True:
             # Update the environment's internal state with new data
             env.envs[0].update_data(new_data)
             
+            
             # Reset the environment if it's the first step
             if total_steps == 0:
                 obs = env.reset()
             else:
-                obs = np.array(env.envs[0].data[env.envs[0].current_step:env.envs[0].current_step + 60], dtype=np.float32)
+                obs = get_observation(env)
             
-            # Ensure the observation is a 2D array with shape (60, 5)
+            # Ensure the observation is a 2D array with shape (1, 60, 5)
             if obs.ndim != 3 or obs.shape != (1, 60, 5):
                 print(f"⚠️ Invalid observation shape: {obs.shape}. Resetting environment...")
                 obs = env.reset()
-            
+                
+            # Train the model periodically
+            #if total_steps > 0 and total_steps % train_interval == 0:  # Start training after step 0
+                #print(f"🚀 Training model at step {total_steps}...")
+                #model.learn(total_timesteps=train_batch_size, reset_num_timesteps=False)
+                #print(f"✅ Training completed at step {total_steps}.")
+
+            # Save the model periodically
+            #if total_steps % save_interval == 0:
+                #print(f"💾 Saving model at step {total_steps}...")
+                #model.save(f"forex_trading_bot.zip")
+                #model.save(f"forex_trading_bot_step_{total_steps}.zip")
+                #print(f"💾 Model saved at step {total_steps}.")
+
             # Debugging: Log the observation shape and content
             print(f"Step {total_steps}: Observation shape: {obs.shape}")
             print(f"Step {total_steps}: Observation content: {obs}")
             
             # Predict action (0=Hold, 1=Buy, 2=Sell)
-            action, _ = model.predict(obs)  # Pass the observation directly (NumPy array)
+            action, _ = model.predict(obs) # Pass the observation directly (NumPy array)
             print(f"Step {total_steps}: Predicted Action {action}")
 
             # Pass action to the environment and place trades
@@ -501,18 +544,6 @@ while True:
             # Log the step details
             logging.info(f"Step {total_steps}: Action {action}, Reward {reward}, Episode {episode}, Trade Count {env.envs[0].trade_count}")
 
-            # Train the model periodically
-            if total_steps > 0 and total_steps % train_interval == 0:  # Start training after step 0
-                print(f"🚀 Training model at step {total_steps}...")
-                model.learn(total_timesteps=train_batch_size, reset_num_timesteps=False)
-                print(f"✅ Training completed at step {total_steps}.")
-
-            # Save the model periodically
-            if total_steps % save_interval == 0:
-                print(f"💾 Saving model at step {total_steps}...")
-                model.save(f"forex_trading_bot_step_{total_steps}.zip")
-                print(f"💾 Model saved at step {total_steps}.")
-
             total_steps += 1
 
             # Check if the episode is done
@@ -520,11 +551,6 @@ while True:
                 episode += 1
                 print(f"✅ Episode {episode} completed at step {total_steps}. Resetting environment...")
                 obs = env.reset()
-
-            # Stop after a certain number of steps (for testing)
-            if total_steps >= 1440:
-                print("🛑 Stopping after 1440 steps.")
-                break
 
     except Exception as e:
         print(f"⚠️ Step {total_steps}: Error in loop: {e}")
